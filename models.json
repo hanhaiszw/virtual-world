@@ -1,0 +1,55 @@
+{
+  "active": "deepseek-chat",
+  "api_type": "openai",
+  "api_base": "https://api.deepseek.com",
+  "api_key_env": "DEEPSEEK_API_KEY",
+  "options": {
+    "temperature": 0.75,
+    "max_tokens": 2000,
+    "top_p": 0.9
+  },
+  "models": {
+    "deepseek-chat": {
+      "label": "DeepSeek Chat",
+      "api_type": "openai",
+      "api_base": "https://api.deepseek.com",
+      "api_key_env": "DEEPSEEK_API_KEY",
+      "max_tokens": 8192
+    },
+    "deepseek-reasoner": {
+      "label": "DeepSeek Reasoner",
+      "api_type": "openai",
+      "api_base": "https://api.deepseek.com",
+      "api_key_env": "DEEPSEEK_API_KEY",
+      "max_tokens": 8192
+    },
+    "claude-sonnet-4-6": {
+      "label": "Claude Sonnet 4.6",
+      "api_type": "anthropic",
+      "api_base": "https://api.anthropic.com",
+      "api_key_env": "ANTHROPIC_API_KEY",
+      "max_tokens": 4096
+    },
+    "claude-haiku-4-5": {
+      "label": "Claude Haiku 4.5",
+      "api_type": "anthropic",
+      "api_base": "https://api.anthropic.com",
+      "api_key_env": "ANTHROPIC_API_KEY",
+      "max_tokens": 2048
+    },
+    "gpt-4o": {
+      "label": "GPT-4o",
+      "api_type": "openai",
+      "api_base": "https://api.openai.com/v1",
+      "api_key_env": "OPENAI_API_KEY",
+      "max_tokens": 4096
+    },
+    "gpt-4o-mini": {
+      "label": "GPT-4o Mini",
+      "api_type": "openai",
+      "api_base": "https://api.openai.com/v1",
+      "api_key_env": "OPENAI_API_KEY",
+      "max_tokens": 4096
+    }
+  }
+}

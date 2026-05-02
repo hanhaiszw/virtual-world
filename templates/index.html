@@ -1,0 +1,1817 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>虚拟家庭</title>
+<style>
+/* ─── Reset & Variables ───────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+    --amber-50:  #FFFBF0;
+    --amber-100: #FEF3C7;
+    --amber-200: #FDE68A;
+    --amber-400: #FBBF24;
+    --amber-500: #F59E0B;
+    --amber-600: #D97706;
+    --orange-600: #DC2626;
+    --stone-50:  #FAFAF9;
+    --stone-100: #F5F5F4;
+    --stone-200: #E7E5E4;
+    --stone-300: #D6D3D1;
+    --stone-500: #78716C;
+    --stone-600: #57534E;
+    --stone-700: #44403C;
+    --stone-800: #292524;
+    --emerald-500: #10B981;
+    --emerald-600: #059669;
+    --dialogue-bg: #FEF9C3;
+    --dialogue-border: #FDE68A;
+    --card-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --card-shadow-hover: 0 4px 16px rgba(0,0,0,0.08);
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-full: 999px;
+    --font-ui: system-ui, -apple-system, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    --font-content: 'Noto Serif SC', 'Source Han Serif SC', 'STSong', 'SimSun', 'Songti SC', serif;
+    --sidebar-w: 320px;
+    --header-h: 56px;
+    --footer-h: 48px;
+}
+
+html, body { height: 100%; }
+body {
+    font-family: var(--font-ui);
+    background: var(--amber-50);
+    color: var(--stone-700);
+    line-height: 1.5;
+    overflow: hidden;
+}
+
+/* ─── Header ──────────────────────────────────────── */
+.app-header {
+    height: var(--header-h);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    background: white;
+    border-bottom: 1px solid var(--stone-200);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+    z-index: 100;
+    position: sticky;
+    top: 0;
+    flex-shrink: 0;
+}
+.app-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--stone-800);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.app-title .icon { font-size: 22px; }
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+.status-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: var(--stone-500);
+}
+.status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--stone-300);
+}
+.status-dot.online { background: var(--emerald-500); box-shadow: 0 0 6px rgba(16,185,129,0.4); }
+.status-dot.offline { background: var(--orange-600); }
+
+/* ─── Layout ──────────────────────────────────────── */
+.app-body {
+    display: flex;
+    height: calc(100vh - var(--header-h) - var(--footer-h));
+}
+
+/* ─── Sidebar ─────────────────────────────────────── */
+.sidebar {
+    width: var(--sidebar-w);
+    min-width: var(--sidebar-w);
+    background: white;
+    border-right: 1px solid var(--stone-200);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+.sidebar-section {
+    padding: 16px 16px 8px;
+}
+.sidebar-section h3 {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--stone-500);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.scene-list { padding: 0 12px 12px; }
+.scene-item {
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: all 0.15s;
+    border-left: 3px solid transparent;
+    margin-bottom: 2px;
+}
+.scene-item:hover { background: var(--amber-100); }
+.scene-item.active {
+    background: var(--amber-100);
+    border-left-color: var(--amber-500);
+}
+.scene-item-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2px;
+}
+.scene-item-key {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--stone-700);
+}
+.scene-item.active .scene-item-key { color: var(--stone-800); }
+.scene-item-time {
+    font-size: 12px;
+    color: var(--stone-500);
+}
+.scene-item-people {
+    display: flex;
+    gap: 4px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+}
+.person-mini-tag {
+    font-size: 11px;
+    padding: 1px 7px;
+    border-radius: var(--radius-full);
+    background: var(--stone-100);
+    color: var(--stone-600);
+}
+.scene-item.active .person-mini-tag { background: var(--amber-200); }
+.scene-item-vibe {
+    font-size: 12px;
+    color: var(--stone-500);
+    margin-top: 2px;
+}
+.tmpl-delete {
+    position: absolute; top: 6px; right: 8px;
+    width: 20px; height: 20px; border: none; background: none;
+    font-size: 16px; color: var(--stone-400); cursor: pointer;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+}
+.tmpl-delete:hover { background: #FEE2E2; color: var(--orange-600); }
+.tmpl-edit {
+    position: absolute; top: 6px; right: 30px;
+    width: 20px; height: 20px; border: none; background: none;
+    font-size: 14px; color: var(--stone-400); cursor: pointer;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+}
+.tmpl-edit:hover { background: var(--amber-100); color: var(--amber-600); }
+.scene-add-btn {
+    padding: 4px 12px; border: 1px dashed var(--stone-300);
+    border-radius: var(--radius-sm); background: none;
+    font-size: 12px; color: var(--stone-500); cursor: pointer;
+    font-family: var(--font-ui); transition: all 0.15s;
+}
+.scene-add-btn:hover { border-color: var(--amber-400); color: var(--amber-600); background: var(--amber-50); }
+
+/* ─── Custom Input ────────────────────────────────── */
+.custom-section { padding: 16px 16px 8px; border-top: 1px solid var(--stone-200); }
+.custom-section textarea {
+    width: 100%;
+    border: 1px solid var(--stone-200);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    font-size: 13px;
+    font-family: var(--font-ui);
+    resize: vertical;
+    min-height: 60px;
+    max-height: 120px;
+    background: var(--stone-50);
+    color: var(--stone-700);
+    transition: border-color 0.2s;
+    line-height: 1.5;
+}
+.custom-section textarea:focus {
+    outline: none;
+    border-color: var(--amber-400);
+    box-shadow: 0 0 0 3px rgba(251,191,36,0.1);
+}
+.custom-section textarea::placeholder { color: var(--stone-300); }
+
+.gen-btn {
+    width: calc(100% - 32px);
+    margin: 8px 16px 16px;
+    padding: 10px 0;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--amber-500);
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+.gen-btn:hover:not(:disabled) { background: var(--amber-600); }
+.gen-btn:disabled {
+    background: var(--stone-300);
+    cursor: not-allowed;
+}
+
+/* ─── Main Content ────────────────────────────────── */
+.main-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 32px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Welcome State */
+.welcome {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    color: var(--stone-400);
+}
+.welcome-characters {
+    display: flex;
+    gap: 20px;
+    opacity: 0.85;
+}
+.welcome-characters img {
+    width: 80px; height: 80px;
+    border-radius: 50%; object-fit: cover;
+    border: 3px solid var(--amber-200);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.welcome-text { font-size: 20px; color: var(--stone-500); }
+.welcome-sub { font-size: 14px; color: var(--stone-400); }
+
+/* Error Banner */
+.error-banner {
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+    color: #991B1B;
+    padding: 16px 20px;
+    border-radius: var(--radius-md);
+    font-size: 14px;
+    margin-bottom: 16px;
+    text-align: center;
+}
+
+/* Scene Display */
+.scene-display { flex: 1; }
+.scene-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 28px 32px;
+    box-shadow: var(--card-shadow);
+    border: 1px solid var(--amber-100);
+    transition: box-shadow 0.2s;
+}
+.scene-card:hover { box-shadow: var(--card-shadow-hover); }
+
+.scene-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+.scene-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 14px;
+    border-radius: var(--radius-full);
+    background: linear-gradient(135deg, #D97706, #F59E0B);
+    color: white;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 2px 4px rgba(217,119,6,0.25);
+}
+.scene-location {
+    font-size: 13px;
+    color: var(--stone-500);
+}
+.scene-characters {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--stone-100);
+}
+.char-avatar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+.char-avatar img {
+    width: 56px; height: 56px;
+    border-radius: 50%; object-fit: cover;
+    border: 2px solid var(--amber-200);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+.char-avatar .name { font-size: 12px; color: var(--stone-500); font-weight: 500; }
+
+.scene-content {
+    font-family: var(--font-content);
+    font-size: 16px;
+    line-height: 1.9;
+    color: var(--stone-700);
+    max-height: 55vh;
+    overflow-y: auto;
+    padding-right: 8px;
+}
+.scene-content p { margin-bottom: 12px; }
+.scene-content p:last-child { margin-bottom: 0; }
+.scene-content .dialogue {
+    background: var(--dialogue-bg);
+    border-left: 3px solid var(--dialogue-border);
+    padding: 0px 8px;
+    border-radius: 0 4px 4px 0;
+}
+.scene-model {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid var(--stone-100);
+    font-size: 12px;
+    color: var(--stone-400);
+    text-align: right;
+}
+
+/* Loading */
+.scene-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 64px 32px;
+    gap: 20px;
+}
+.loading-characters { display: flex; gap: 16px; }
+.loading-char {
+    width: 48px; height: 48px;
+    border-radius: 50%; object-fit: cover;
+    border: 2px solid var(--stone-200);
+    animation: bounce 0.6s ease-in-out infinite;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+}
+.loading-char:nth-child(1) { animation-delay: 0s; }
+.loading-char:nth-child(2) { animation-delay: 0.12s; }
+.loading-char:nth-child(3) { animation-delay: 0.24s; }
+.loading-char:nth-child(4) { animation-delay: 0.36s; }
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-12px); }
+}
+.loading-text {
+    font-size: 15px;
+    color: var(--stone-500);
+    display: flex;
+    gap: 4px;
+}
+.loading-scene-name { font-weight: 600; color: var(--stone-600); }
+.dots-anim::after {
+    content: '';
+    animation: dots 1.5s steps(4, end) infinite;
+}
+@keyframes dots {
+    0%   { content: ''; }
+    25%  { content: '.'; }
+    50%  { content: '..'; }
+    75%  { content: '...'; }
+    100% { content: ''; }
+}
+.loading-bar {
+    width: 220px;
+    height: 4px;
+    background: var(--stone-200);
+    border-radius: 2px;
+    overflow: hidden;
+}
+.loading-bar-inner {
+    height: 100%;
+    background: linear-gradient(90deg, var(--amber-400), var(--amber-600));
+    border-radius: 2px;
+    animation: progress 1.5s ease-in-out infinite;
+}
+@keyframes progress {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(400%); }
+}
+
+/* Error state */
+.scene-error {
+    text-align: center;
+    padding: 48px 32px;
+    color: var(--orange-600);
+}
+.scene-error .err-icon { font-size: 48px; margin-bottom: 12px; }
+.scene-error .err-msg { font-size: 15px; margin-bottom: 16px; }
+.retry-btn {
+    padding: 8px 20px;
+    border: none;
+    border-radius: var(--radius-sm);
+    background: var(--orange-600);
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+/* ─── Header Button ──────────────────────────────── */
+.header-btn {
+    padding: 6px 16px;
+    border: 1px solid var(--amber-400);
+    border-radius: var(--radius-sm);
+    background: var(--amber-50);
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--amber-600);
+    font-weight: 600;
+    transition: all 0.15s;
+    font-family: var(--font-ui);
+    flex-shrink: 0;
+}
+.header-btn:hover { background: var(--amber-100); border-color: var(--amber-500); }
+
+/* ─── Modal ───────────────────────────────────────── */
+.modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 1000;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(2px);
+}
+.modal-panel {
+    background: white;
+    border-radius: var(--radius-lg);
+    width: 90vw; max-width: 700px; max-height: 85vh;
+    display: flex; flex-direction: column;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+    animation: modalIn 0.2s ease;
+}
+@keyframes modalIn {
+    from { opacity: 0; transform: scale(0.95) translateY(10px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.modal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--stone-200);
+}
+.modal-header h2 { font-size: 18px; color: var(--stone-800); }
+.modal-close {
+    width: 32px; height: 32px; border: none; background: none;
+    font-size: 18px; cursor: pointer; color: var(--stone-400);
+    border-radius: 50%; transition: all 0.15s;
+}
+.modal-close:hover { background: var(--stone-100); color: var(--stone-700); }
+.modal-tabs {
+    display: flex; gap: 4px; padding: 8px 16px;
+    border-bottom: 1px solid var(--stone-200);
+    overflow-x: auto;
+}
+.char-tab {
+    padding: 6px 16px; border: none; background: none;
+    font-size: 13px; color: var(--stone-500); cursor: pointer;
+    border-radius: var(--radius-sm); white-space: nowrap;
+    transition: all 0.15s; font-family: var(--font-ui);
+}
+.char-tab:hover { background: var(--amber-50); }
+.char-tab.active { background: var(--amber-100); color: var(--amber-600); font-weight: 600; }
+.modal-body {
+    flex: 1; overflow-y: auto; padding: 16px 20px;
+}
+.modal-footer {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 20px; border-top: 1px solid var(--stone-200);
+}
+#charSaveStatus { font-size: 13px; }
+
+.char-field { margin-bottom: 16px; }
+.char-field label {
+    display: block; font-size: 13px; font-weight: 600;
+    color: var(--stone-600); margin-bottom: 4px;
+}
+.char-field .hint {
+    font-size: 11px; color: var(--stone-400); font-weight: 400;
+    margin-left: 6px;
+}
+.char-field textarea {
+    width: 100%; padding: 10px 12px;
+    border: 1px solid var(--stone-200); border-radius: var(--radius-sm);
+    font-size: 13px; font-family: var(--font-ui); line-height: 1.6;
+    resize: vertical; min-height: 80px;
+    color: var(--stone-700); background: var(--stone-50);
+    transition: border-color 0.2s;
+}
+.char-field textarea:focus {
+    outline: none; border-color: var(--amber-400);
+    box-shadow: 0 0 0 3px rgba(251,191,36,0.1);
+}
+.char-field textarea.tall { min-height: 200px; }
+.char-meta {
+    display: flex; gap: 12px; margin-bottom: 16px;
+    font-size: 13px; color: var(--stone-500);
+}
+.char-meta span { display: flex; align-items: center; gap: 4px; }
+
+/* ─── Model Config ────────────────────────────────── */
+.model-select, .model-input {
+    width: 100%; padding: 8px 12px;
+    border: 1px solid var(--stone-200); border-radius: var(--radius-sm);
+    font-size: 14px; font-family: var(--font-ui);
+    color: var(--stone-700); background: white;
+    transition: border-color 0.15s;
+}
+.model-select:focus, .model-input:focus {
+    outline: none; border-color: var(--amber-400);
+    box-shadow: 0 0 0 3px rgba(251,191,36,0.1);
+}
+
+/* ─── Chat Panel ──────────────────────────────────── */
+.chat-panel {
+    position: fixed; top: 0; right: 0; bottom: 0;
+    width: 380px; max-width: 90vw;
+    background: white; z-index: 500;
+    display: flex; flex-direction: column;
+    box-shadow: -4px 0 24px rgba(0,0,0,0.1);
+    animation: slideIn 0.25s ease;
+}
+@keyframes slideIn {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}
+.chat-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 16px; border-bottom: 1px solid var(--stone-200);
+}
+.chat-header h3 { font-size: 16px; color: var(--stone-800); }
+.chat-chars {
+    display: flex; gap: 6px; padding: 10px 12px;
+    border-bottom: 1px solid var(--stone-100);
+    overflow-x: auto;
+}
+.chat-char-btn img { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; }
+.chat-char-btn {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border: 1px solid var(--stone-200);
+    border-radius: var(--radius-full); background: white;
+    font-size: 13px; cursor: pointer; white-space: nowrap;
+    transition: all 0.15s; font-family: var(--font-ui);
+}
+.chat-char-btn:hover { background: var(--amber-50); }
+.chat-char-btn.active { background: var(--amber-100); border-color: var(--amber-400); font-weight: 600; }
+.chat-messages {
+    flex: 1; overflow-y: auto; padding: 12px 16px;
+    display: flex; flex-direction: column; gap: 10px;
+}
+.chat-empty {
+    text-align: center; color: var(--stone-400);
+    font-size: 14px; margin-top: 40px;
+}
+.chat-msg {
+    max-width: 85%; padding: 10px 14px;
+    border-radius: 16px; font-size: 14px; line-height: 1.6;
+    animation: msgIn 0.2s ease;
+}
+@keyframes msgIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.chat-msg.user {
+    align-self: flex-end;
+    background: var(--amber-400); color: white;
+    border-bottom-right-radius: 4px;
+}
+.chat-msg.character {
+    align-self: flex-start;
+    background: var(--stone-100); color: var(--stone-700);
+    border-bottom-left-radius: 4px;
+}
+.chat-msg .msg-sender {
+    font-size: 11px; font-weight: 600; margin-bottom: 2px;
+    opacity: 0.7;
+}
+.chat-msg.character .msg-sender { color: var(--stone-500); }
+.chat-typing {
+    align-self: flex-start; padding: 10px 14px;
+    color: var(--stone-400); font-size: 13px;
+}
+.chat-input-area {
+    display: flex; gap: 8px; padding: 12px;
+    border-top: 1px solid var(--stone-200);
+}
+.chat-input {
+    flex: 1; padding: 8px 14px;
+    border: 1px solid var(--stone-200); border-radius: var(--radius-full);
+    font-size: 14px; font-family: var(--font-ui); outline: none;
+    transition: border-color 0.2s;
+}
+.chat-input:focus { border-color: var(--amber-400); }
+.chat-send-btn {
+    padding: 8px 16px; border: none; border-radius: var(--radius-full);
+    background: var(--amber-500); color: white;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: background 0.15s;
+}
+.chat-send-btn:hover { background: var(--amber-600); }
+.chat-send-btn:disabled { background: var(--stone-300); cursor: not-allowed; }
+
+/* ─── Footer / History ────────────────────────────── */
+.app-footer {
+    height: var(--footer-h);
+    background: white;
+    border-top: 1px solid var(--stone-200);
+    display: flex;
+    align-items: center;
+    padding: 0 24px;
+    gap: 12px;
+}
+.footer-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--stone-500);
+    flex-shrink: 0;
+}
+.history-strip {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    flex: 1;
+}
+.history-item {
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    background: var(--stone-100);
+    font-size: 12px;
+    color: var(--stone-600);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s;
+    flex-shrink: 0;
+}
+.history-item:hover { background: var(--amber-100); }
+.history-item.active { background: var(--amber-200); color: var(--stone-800); font-weight: 600; }
+.history-empty {
+    font-size: 12px;
+    color: var(--stone-400);
+}
+
+/* ─── Scrollbar ────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--stone-300); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--stone-500); }
+
+/* ─── Responsive ───────────────────────────────────── */
+@media (max-width: 768px) {
+    .app-body { flex-direction: column; }
+    .sidebar {
+        width: 100%; min-width: 100%;
+        max-height: 40vh;
+        border-right: none;
+        border-bottom: 1px solid var(--stone-200);
+    }
+    .main-content { padding: 16px; }
+    .scene-card { padding: 16px 20px; }
+    .scene-content { font-size: 15px; }
+    .welcome-characters img { width: 48px; height: 48px; }
+    .char-avatar img { width: 40px; height: 40px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ─── Header ──────────────────────────────────────── -->
+<header class="app-header">
+    <div class="app-title">
+        <span class="icon">🏠</span>
+        <span>虚拟家庭</span>
+    </div>
+    <div class="header-right">
+        <button class="header-btn" onclick="App.openChat()">💬 对话</button>
+        <button class="header-btn" onclick="App.openCharEditor()">👤 人物管理</button>
+        <button class="header-btn" onclick="App.openModelConfig()">⚙️ 模型配置</button>
+        <div class="status-bar" id="statusBar">
+            <span class="status-dot" id="statusDot"></span>
+            <span id="statusText">加载中...</span>
+        </div>
+    </div>
+</header>
+
+<!-- ─── Body ────────────────────────────────────────── -->
+<div class="app-body">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-section" style="display:flex;align-items:center;justify-content:space-between">
+            <h3 style="margin:0">📋 场景列表</h3>
+            <button class="scene-add-btn" onclick="App.openSceneEditor()">＋ 新建</button>
+        </div>
+        <div class="scene-list" id="sceneList">
+            <div class="history-empty" style="padding:12px">加载中...</div>
+        </div>
+
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        {% if init_error %}
+        <div class="error-banner">⚠️ {{ init_error }}</div>
+        {% endif %}
+
+        <div class="welcome" id="welcomeState">
+            <div class="welcome-characters" id="welcomeAvatars"></div>
+            <div class="welcome-text">选择或输入一个场景开始模拟</div>
+            <div class="welcome-sub">一家四口的日常生活，由 AI 为你演绎</div>
+        </div>
+
+        <div class="scene-display" id="sceneDisplay" style="display:none;"></div>
+    </main>
+</div>
+
+<!-- ─── Character Editor Modal ───────────────────────── -->
+<div class="modal-overlay" id="charModal" style="display:none">
+    <div class="modal-panel">
+        <div class="modal-header">
+            <h2>👤 人物人设管理</h2>
+            <button class="modal-close" onclick="App.closeCharEditor()">✕</button>
+        </div>
+        <div class="modal-tabs" id="charTabs"></div>
+        <div class="modal-body" id="charEditorBody"></div>
+        <div class="modal-footer">
+            <span id="charSaveStatus"></span>
+            <button class="gen-btn" onclick="App.saveCharacter()" style="width:auto;margin:0;padding:8px 24px">💾 保存修改</button>
+        </div>
+    </div>
+</div>
+
+<!-- ─── Chat Panel ────────────────────────────────────── -->
+<div class="chat-panel" id="chatPanel" style="display:none">
+    <div class="chat-header">
+        <h3 id="chatTitle">💬 家庭对话</h3>
+        <button class="modal-close" onclick="App.closeChat()">✕</button>
+    </div>
+    <div class="chat-chars" id="chatChars"></div>
+    <div class="chat-messages" id="chatMessages">
+        <div class="chat-empty">选择一个家人，开始对话吧</div>
+    </div>
+    <div class="chat-input-area">
+        <input type="text" id="chatInput" class="chat-input"
+               placeholder="输入消息..."
+               onkeydown="if(event.key==='Enter')App.sendMessage()">
+        <button class="chat-send-btn" onclick="App.sendMessage()">发送</button>
+    </div>
+</div>
+
+<!-- ─── Scene Editor Modal ────────────────────────────── -->
+<div class="modal-overlay" id="sceneEditorModal" style="display:none">
+    <div class="modal-panel" style="max-width:520px">
+        <div class="modal-header">
+            <h2 id="sceneEditorTitle">✏️ 新建场景</h2>
+            <button class="modal-close" onclick="App.closeSceneEditor()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="char-field">
+                <label>场景标题</label>
+                <input type="text" id="seTitle" class="model-input" placeholder="给场景起个名字">
+            </div>
+            <div class="char-field">
+                <label>出场人物</label>
+                <div id="seCharCheckboxes" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+            </div>
+            <div style="display:flex;gap:12px">
+                <div class="char-field" style="flex:1">
+                    <label>地点</label>
+                    <select id="seLocation" class="model-input">
+                        <option value="">默认</option>
+                        <option value="餐厅">餐厅</option>
+                        <option value="客厅">客厅</option>
+                        <option value="厨房">厨房</option>
+                        <option value="书房">书房</option>
+                        <option value="主卧">主卧</option>
+                        <option value="小月的房间">小月的房间</option>
+                        <option value="小华的房间">小华的房间</option>
+                        <option value="阳台">阳台</option>
+                    </select>
+                </div>
+                <div class="char-field" style="flex:1">
+                    <label>时间</label>
+                    <input type="text" id="seTime" class="model-input" placeholder="如: 晚上 20:00">
+                </div>
+            </div>
+            <div class="char-field">
+                <label>剧情简述</label>
+                <textarea id="sePlot" rows="4" style="width:100%;padding:10px 12px;border:1px solid var(--stone-200);border-radius:var(--radius-sm);font-size:13px;font-family:var(--font-ui);resize:vertical;min-height:80px;color:var(--stone-700);background:var(--stone-50)" placeholder="比如：小华考试不及格，不敢告诉爸爸..."></textarea>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <span id="seStatus"></span>
+            <button class="gen-btn" onclick="App.saveSceneFromEditor()" style="width:auto;margin:0;padding:8px 20px">保存模板</button>
+        </div>
+    </div>
+</div>
+
+<!-- ─── Model Config Modal ────────────────────────────── -->
+<div class="modal-overlay" id="modelModal" style="display:none">
+    <div class="modal-panel" style="max-width:600px">
+        <div class="modal-header">
+            <h2>⚙️ 模型配置</h2>
+            <button class="modal-close" onclick="App.closeModelConfig()">✕</button>
+        </div>
+        <div class="modal-body">
+            <div class="char-field">
+                <label>模型名称</label>
+                <input type="text" id="editModelName" class="model-input" placeholder="deepseek-chat">
+            </div>
+            <div class="char-field">
+                <label>API 地址</label>
+                <input type="text" id="editApiBase" class="model-input" placeholder="https://api.deepseek.com">
+            </div>
+            <div class="char-field">
+                <label>API Key</label>
+                <input type="password" id="editApiKey" class="model-input" placeholder="sk-...">
+                <button type="button" onclick="App.toggleApiKey()" style="font-size:12px;margin-top:4px;border:none;background:none;color:var(--stone-500);cursor:pointer">显示/隐藏</button>
+            </div>
+            <hr style="border:none;border-top:1px solid var(--stone-200);margin:16px 0">
+            <div style="display:flex;gap:16px">
+                <div class="char-field" style="flex:1">
+                    <label>Temperature</label>
+                    <input type="number" id="editTemp" class="model-input" min="0" max="2" step="0.05" placeholder="0.75">
+                </div>
+                <div class="char-field" style="flex:1">
+                    <label>Max Tokens</label>
+                    <input type="number" id="editMaxTokens" class="model-input" min="100" max="32000" step="100" placeholder="2000">
+                </div>
+                <div class="char-field" style="flex:1">
+                    <label>Top P</label>
+                    <input type="number" id="editTopP" class="model-input" min="0" max="1" step="0.05" placeholder="0.9">
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <span id="modelSaveStatus"></span>
+            <button class="gen-btn" onclick="App.saveModelConfig()" style="width:auto;margin:0;padding:8px 24px">应用并保存</button>
+        </div>
+    </div>
+</div>
+
+<!-- ─── Footer / History ────────────────────────────── -->
+<footer class="app-footer">
+    <span class="footer-label">📜 历史记录</span>
+    <div class="history-strip" id="historyStrip">
+        <span class="history-empty" id="historyEmpty">还没有场景记录</span>
+    </div>
+</footer>
+
+<!-- ─── Script ──────────────────────────────────────── -->
+<script>
+// ─── 角色头像映射 ────────────────────────────────────
+const AVATAR_FILES = {
+    '王建国': '爸爸.png',
+    '李梅':   '妈妈.png',
+    '王小月': '王小月.png',
+    '王小华': '王小华.png',
+};
+
+function getAvatarUrl(name) {
+    const file = AVATAR_FILES[name];
+    return file ? `/img/${encodeURIComponent(file)}` : '';
+}
+
+function avatarHtml(name, size) {
+    const url = getAvatarUrl(name);
+    const style = size ? `width:${size}px;height:${size}px` : '';
+    if (url) return `<img src="${url}" alt="${name}" style="${style}" onerror="this.style.display='none';this.nextElementSibling.style.display=''">`;
+    return `<span style="font-size:${(size||24)*0.6}px">🧑</span>`;
+}
+
+const App = {
+    state: {
+        loading: false,
+        currentScene: null,
+        currentHistoryIndex: -1,
+        history: [],
+        characters: {},
+        status: {},
+        selectedKey: '',
+        customDesc: '',
+        loadingMsgIdx: 0,
+        loadingTimer: null,
+        dotsTimer: null,
+    },
+
+    loadingMessages: [
+        '正在构思场景...',
+        '角色们正在就位...',
+        '正在组织对话...',
+        '快要完成了...',
+    ],
+
+    async init() {
+        this.bindEvents();
+        await this.loadCharNames();
+        this.renderWelcomeAvatars();
+        await this.loadStatus();
+        await this.loadSceneTemplates();
+        await this.loadHistory();
+
+        {% if not has_api_key %}
+        this.setStatus(false, '未连接（缺少 API Key）');
+        document.getElementById('genBtn').disabled = true;
+        this.hideWelcome();
+        {% endif %}
+    },
+
+    async loadCharNames() {
+        try {
+            const resp = await fetch('/api/characters');
+            const data = await resp.json();
+            this.charNames = Object.keys(data.characters);
+        } catch (e) { /* keep defaults */ }
+    },
+
+    renderWelcomeAvatars() {
+        const container = document.getElementById('welcomeAvatars');
+        if (!container) return;
+        const names = this.getFamilyNames();
+        container.innerHTML = names.map(n =>
+            `<img src="${getAvatarUrl(n)}" alt="${n}" title="${n}" onerror="this.style.display='none'">`
+        ).join('');
+    },
+
+    bindEvents() {
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && e.ctrlKey && !this.state.loading) {
+                this.generateScene();
+            }
+        });
+        // 场景列表点击 — 事件委托
+        document.getElementById('sceneList').addEventListener('click', (e) => {
+            const item = e.target.closest('.scene-item');
+            if (!item) return;
+            if (e.target.closest('.tmpl-edit') || e.target.closest('.tmpl-delete')) return;
+            const idx = parseInt(item.dataset.idx);
+            const key = item.dataset.key;
+            if (!isNaN(idx)) this.selectTemplate(key, idx);
+        });
+    },
+
+    async loadStatus() {
+        try {
+            const resp = await fetch('/api/status');
+            if (!resp.ok) throw new Error();
+            this.state.status = await resp.json();
+            this.state.characters = this.state.status.characters || {};
+            this.setStatus(true, `${this.state.status.api_type || this.state.status.provider} / ${this.state.status.model}`);
+        } catch {
+            this.setStatus(false, '服务未连接');
+        }
+    },
+
+    async loadHistory() {
+        try {
+            const resp = await fetch('/api/history');
+            const data = await resp.json();
+            this.state.history = data.history || [];
+            this.renderHistory();
+        } catch {}
+    },
+
+    setStatus(online, text) {
+        const dot = document.getElementById('statusDot');
+        const txt = document.getElementById('statusText');
+        dot.className = 'status-dot ' + (online ? 'online' : 'offline');
+        txt.textContent = text;
+    },
+
+    selectScene(key) {
+        this.state.selectedKey = key;
+        this.state.customDesc = '';
+        document.getElementById('customInput').value = '';
+        this.renderSceneList();
+        this.generateScene();
+    },
+
+    onCustomInput() {
+        this.state.customDesc = document.getElementById('customInput').value;
+        if (this.state.customDesc.trim()) {
+            this.state.selectedKey = '';
+            this.renderSceneList();
+            this.hideWelcome();
+        }
+    },
+
+    hideWelcome() {
+        document.getElementById('welcomeState').style.display = 'none';
+    },
+
+    sceneTemplates: [],
+    editingTemplateId: null,
+
+    async loadSceneTemplates() {
+        try {
+            const resp = await fetch('/api/scene-templates');
+            const data = await resp.json();
+            this.sceneTemplates = data.templates || [];
+        } catch(e) {}
+        this.renderSceneList();
+    },
+
+    renderSceneList() {
+        const container = document.getElementById('sceneList');
+        if (!container) return;
+        if (this.sceneTemplates.length === 0) {
+            container.innerHTML = '<div class="history-empty" style="padding:12px">暂无场景模板</div>';
+            return;
+        }
+        container.innerHTML = this.sceneTemplates.map((t, i) => {
+            const chars = Array.isArray(t.characters) ? t.characters : [];
+            const isActive = t.scene_key && t.scene_key === this.state.selectedKey;
+            const typeLabel = t.scene_key ? '' : '<span style="font-size:10px;color:var(--amber-500)">💾</span>';
+            const meta = [t.time_override, t.location].filter(Boolean).join(' · ');
+            return `
+            <div class="scene-item${isActive ? ' active' : ''}" data-key="${this.escapeHtml(t.scene_key || 'custom_'+t.id)}" data-idx="${i}" style="position:relative;cursor:pointer">
+                <div class="scene-item-top">
+                    <span class="scene-item-key">${typeLabel} ${this.escapeHtml(t.title || t.scene_key)}</span>
+                </div>
+                ${meta ? `<div style="font-size:11px;color:var(--stone-500)">🕐 ${this.escapeHtml(meta)}</div>` : ''}
+                <div class="scene-item-people">${chars.map(n => `<span class="person-mini-tag">${n}</span>`).join('')}</div>
+                ${t.plot ? `<div class="scene-item-vibe">${this.escapeHtml(t.plot).substring(0,40)}</div>` : ''}
+                <button class="tmpl-edit" onclick="event.stopPropagation();App.editTemplate(${t.id})" title="编辑">✎</button>
+                ${!t.scene_key ? `<button class="tmpl-delete" onclick="event.stopPropagation();App.deleteTemplate(${t.id})" title="删除">×</button>` : ''}
+            </div>`;
+        }).join('');
+    },
+
+    // ─── 场景编辑器弹窗 ──────────────────────────
+    openSceneEditor(id = null) {
+        this.editingTemplateId = id;
+        const titleEl = document.getElementById('sceneEditorTitle');
+        document.getElementById('seTitle').value = '';
+        document.getElementById('seLocation').value = '';
+        document.getElementById('seTime').value = '';
+        document.getElementById('sePlot').value = '';
+
+        if (id) {
+            const t = this.sceneTemplates.find(t => t.id === id);
+            if (t) {
+                titleEl.textContent = '✏️ 编辑场景';
+                document.getElementById('seTitle').value = t.title || '';
+                document.getElementById('seLocation').value = t.location || '';
+                document.getElementById('seTime').value = t.time_override || '';
+                document.getElementById('sePlot').value = t.plot || '';
+            }
+        } else {
+            titleEl.textContent = '✏️ 新建场景';
+        }
+        this.renderSeCharCheckboxes(id);
+        document.getElementById('sceneEditorModal').style.display = 'flex';
+    },
+
+    closeSceneEditor() {
+        document.getElementById('sceneEditorModal').style.display = 'none';
+        this.editingTemplateId = null;
+    },
+
+    getFamilyNames() {
+        return this.getNames().filter(n => !this.charData[n]?.is_system_user);
+    },
+
+    renderSeCharCheckboxes(editId = null) {
+        const container = document.getElementById('seCharCheckboxes');
+        if (!container) return;
+        let checkedChars = this.getFamilyNames();
+        if (editId) {
+            const t = this.sceneTemplates.find(t => t.id === editId);
+            if (t && Array.isArray(t.characters)) checkedChars = t.characters;
+        }
+        container.innerHTML = this.getFamilyNames().map(n => `
+            <label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;user-select:none;">
+                <input type="checkbox" value="${n}" ${checkedChars.includes(n) ? 'checked' : ''}> ${n}
+            </label>
+        `).join('');
+    },
+
+    getSeData() {
+        return {
+            title: document.getElementById('seTitle')?.value?.trim() || '未命名',
+            scene_key: '',
+            time_override: document.getElementById('seTime')?.value || '',
+            location: document.getElementById('seLocation')?.value || '',
+            characters: [...document.querySelectorAll('#seCharCheckboxes input:checked')].map(cb => cb.value),
+            plot: document.getElementById('sePlot')?.value?.trim() || '',
+        };
+    },
+
+    async saveSceneFromEditor() {
+        const data = this.getSeData();
+        if (!data.plot && !data.title) { this.showError('请填写标题或剧情'); return; }
+        try {
+            let resp;
+            if (this.editingTemplateId) {
+                resp = await fetch(`/api/scene-templates/${this.editingTemplateId}`, {
+                    method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data),
+                });
+            } else {
+                resp = await fetch('/api/scene-templates', {
+                    method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data),
+                });
+            }
+            if (resp.ok) {
+                document.getElementById('seStatus').textContent = '✅ 已保存';
+                document.getElementById('seStatus').style.color = 'var(--emerald-500)';
+                this.closeSceneEditor();
+                await this.loadSceneTemplates();
+            }
+        } catch (e) { this.showError('保存失败'); }
+    },
+
+    selectTemplate(key, idx) {
+        const t = this.sceneTemplates[idx];
+        if (!t) return;
+        this.state.selectedKey = t.scene_key || '';
+        this.state.customDesc = t.plot || '';
+        // 弹窗参数
+        const chars = Array.isArray(t.characters) ? t.characters : [];
+        if (t.scene_key) {
+            this._seData = null;
+        } else {
+            this._seData = {
+                characters: chars,
+                location: t.location || '',
+                time_override: t.time_override || '',
+                plot: t.plot || '',
+            };
+        }
+        this.renderSceneList();
+        this.generateScene();
+    },
+
+    editTemplate(id) { this.openSceneEditor(id); },
+
+    async deleteTemplate(id) {
+        if (!confirm('删除这个场景模板？')) return;
+        await fetch(`/api/scene-templates/${id}`, { method: 'DELETE' });
+        await this.loadSceneTemplates();
+    },
+
+    async generateScene() {
+        if (this.state.loading) return;
+        if (!this.state.selectedKey && !this.state.customDesc.trim()) {
+            this.showError('请选择一个预设场景或输入自定义场景描述');
+            return;
+        }
+
+        const sceneDesc = this.state.selectedKey || this.state.customDesc?.substring(0,20) || '自定义场景';
+
+        this.enterLoadingState(sceneDesc);
+
+        try {
+            const body = {};
+            if (this.state.selectedKey) {
+                body.scene_key = this.state.selectedKey;
+            } else {
+                body.scene_description = this.state.customDesc.trim();
+            }
+            // 自定义场景参数
+            const se = this._seData;
+            if (se) {
+                if (se.characters?.length > 0 && se.characters.length < 4) body.characters = se.characters;
+                if (se.location) body.location = se.location;
+                if (se.time_override) body.time_override = se.time_override;
+                if (se.plot) body.plot = se.plot;
+                body.scene_description = se.plot;
+            }
+            if (this.state.customDesc.trim()) body.plot = body.plot || this.state.customDesc.trim();
+
+            const resp = await fetch('/api/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            });
+
+            if (!resp.ok) {
+                const err = await resp.json();
+                throw new Error(err.detail || '生成失败');
+            }
+
+            const data = await resp.json();
+            this.state.currentScene = data.scene;
+            this.state.currentHistoryIndex = -1;
+            this.renderSceneDisplay();
+            await this.loadHistory();
+            document.querySelector('.app-footer').scrollIntoView({ behavior: 'smooth' });
+        } catch (err) {
+            this.renderSceneError(err.message);
+        } finally {
+            this.exitLoadingState();
+        }
+    },
+
+    enterLoadingState(name) {
+        this.state.loading = true;
+        this.state.loadingMsgIdx = 0;
+        const names = this.getFamilyNames();
+        const charsHTML = names.map((n, i) =>
+            `<img class="loading-char" src="${getAvatarUrl(n)}" alt="${n}" style="animation-delay:${i*0.12}s" onerror="this.style.display='none'">`
+        ).join('');
+        const display = document.getElementById('sceneDisplay');
+        display.style.display = 'block';
+        display.innerHTML = `
+            <div class="scene-card">
+                <div class="scene-loading">
+                    <div class="loading-characters">${charsHTML}</div>
+                    <div class="loading-text">
+                        <span class="loading-scene-name">${this.escapeHtml(name)}</span>
+                        <span id="loadingMsg">${this.loadingMessages[0]}</span>
+                        <span class="dots-anim"></span>
+                    </div>
+                    <div class="loading-bar">
+                        <div class="loading-bar-inner"></div>
+                    </div>
+                </div>
+            </div>`;
+
+        
+        this.state.loadingTimer = setInterval(() => {
+            this.state.loadingMsgIdx++;
+            const msgs = this.loadingMessages;
+            const idx = Math.min(this.state.loadingMsgIdx, msgs.length - 1);
+            const el = document.getElementById('loadingMsg');
+            if (el) el.textContent = msgs[idx];
+        }, 4000);
+    },
+
+    exitLoadingState() {
+        this.state.loading = false;
+        clearInterval(this.state.loadingTimer);
+            },
+
+    renderSceneDisplay() {
+        const scene = this.state.currentScene;
+        if (!scene) return;
+
+        const display = document.getElementById('sceneDisplay');
+        display.style.display = 'block';
+
+        const charsHTML = (scene.present || []).map(name => {
+            return `<div class="char-avatar"><img src="${getAvatarUrl(name)}" alt="${name}" onerror="this.style.display='none'"><span class="name">${name}</span></div>`;
+        }).join('');
+
+        const content = this.formatContent(scene.content || '');
+
+        display.innerHTML = `
+            <div class="scene-card">
+                <div class="scene-meta">
+                    <span class="scene-badge">🕐 ${this.escapeHtml(scene.time || '')}</span>
+                    <span class="scene-location">📍 ${this.escapeHtml(scene.location || '')}</span>
+                </div>
+                <div class="scene-characters">${charsHTML}</div>
+                <div class="scene-content">${content}</div>
+                <div class="scene-model">🧠 ${this.escapeHtml(scene.model || '?')}</div>
+            </div>`;
+
+        document.title = `📖 ${scene.time || '场景'} - 虚拟家庭模拟器`;
+    },
+
+    renderSceneError(msg) {
+        const display = document.getElementById('sceneDisplay');
+        display.style.display = 'block';
+        display.innerHTML = `
+            <div class="scene-card">
+                <div class="scene-error">
+                    <div class="err-icon">😞</div>
+                    <div class="err-msg">${this.escapeHtml(msg)}</div>
+                    <button class="retry-btn" onclick="App.generateScene()">🔄 重试</button>
+                </div>
+            </div>`;
+    },
+
+    formatContent(text) {
+        let html = this.escapeHtml(text);
+        html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        html = html.replace(/「([^」]*)」/g, '<span class="dialogue">「$1」</span>');
+        const paragraphs = html.split(/\n\n+/).filter(p => p.trim());
+        return paragraphs.map(p => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
+    },
+
+    renderHistory() {
+        const strip = document.getElementById('historyStrip');
+        const empty = document.getElementById('historyEmpty');
+
+        if (this.state.history.length === 0) {
+            strip.innerHTML = '';
+            strip.appendChild(empty);
+            empty.style.display = '';
+            return;
+        }
+
+        empty.style.display = 'none';
+        strip.innerHTML = this.state.history.map((h, i) => {
+            const isActive = this.state.currentHistoryIndex === i;
+            const created = h.created_at ? h.created_at.substring(11, 16) : '';
+            const label = `${created} ${h.time} · ${h.location}`;
+            return `<span class="history-item${isActive ? ' active' : ''}"
+                        onclick="App.viewHistory(${i})"
+                        title="${this.escapeHtml((h.present||[]).join('、'))}">${label}</span>`;
+        }).join('');
+        strip.scrollLeft = strip.scrollWidth;
+    },
+
+    viewHistory(index) {
+        if (index < 0 || index >= this.state.history.length) return;
+        this.state.currentScene = this.state.history[index];
+        this.state.currentHistoryIndex = index;
+        this.state.selectedKey = '';
+        this.renderSceneList();
+        this.renderSceneDisplay();
+        this.renderHistory();
+        this.hideWelcome();
+    },
+
+    async saveTemplate() {
+        const checkedChars = [...document.querySelectorAll('#charCheckboxes input:checked')].map(cb => cb.value);
+        const data = {
+            title: document.getElementById('sceneTitle')?.value?.trim() || (this.state.customDesc || '未命名场景').substring(0, 30),
+            scene_key: '',
+            time_override: document.getElementById('sceneTime')?.value || '',
+            location: document.getElementById('sceneLocation')?.value || '',
+            characters: checkedChars,
+            plot: this.state.customDesc || '',
+        };
+        try {
+            let resp;
+            if (this.editingTemplateId) {
+                resp = await fetch(`/api/scene-templates/${this.editingTemplateId}`, {
+                    method: 'PUT', headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify(data),
+                });
+            } else {
+                resp = await fetch('/api/scene-templates', {
+                    method: 'POST', headers: {'Content-Type':'application/json'},
+                    body: JSON.stringify(data),
+                });
+            }
+            if (resp.ok) {
+                this.showError(this.editingTemplateId ? '✅ 模板已更新' : '✅ 模板已保存');
+                this.editingTemplateId = null;
+                this.resetCustomForm();
+                await this.loadSceneTemplates();
+            }
+        } catch (e) { this.showError('保存失败'); }
+    },
+
+    resetCustomForm() {
+        document.getElementById('sceneTitle').value = '';
+        document.getElementById('sceneLocation').value = '';
+        document.getElementById('sceneTime').value = '';
+        document.getElementById('customInput').value = '';
+        this.state.customDesc = '';
+        document.querySelectorAll('#charCheckboxes input').forEach(cb => { cb.checked = true; });
+        const btn = document.querySelector('.custom-section .header-btn');
+        if (btn) btn.textContent = '💾 保存模板';
+    },
+
+    showError(msg) {
+        const main = document.getElementById('mainContent');
+        const existing = main.querySelector('.error-toast');
+        if (existing) existing.remove();
+
+        const toast = document.createElement('div');
+        toast.className = 'error-toast';
+        toast.style.cssText = `
+            position: fixed; bottom: 56px; left: 50%; transform: translateX(-50%);
+            background: #DC2626; color: white; padding: 10px 24px; border-radius: 12px;
+            font-size: 14px; z-index: 100; animation: fadeInUp 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        `;
+        toast.textContent = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transition = 'opacity 0.3s';
+            setTimeout(() => toast.remove(), 300);
+        }, 3000);
+    },
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    },
+
+    // ─── 人物对话 ──────────────────────────────────
+    charNames: ['王建国', '李梅', '王小月', '王小华'],
+
+    getNames() { return this.charNames; },
+
+    openChat() {
+        document.getElementById('chatPanel').style.display = 'flex';
+        this.renderChatChars();
+        if (!this.chatChar && this.getNames().length > 0) {
+            this.selectChatChar(this.getNames()[0]);
+        } else if (this.chatChar) {
+            this.loadChatHistory();
+        }
+        const msgs = document.getElementById('chatMessages');
+        msgs.onscroll = () => {
+            if (msgs.scrollTop === 0 && this.chatHistory.length > 0) {
+                const firstId = this.chatHistory[0]?.id;
+                if (firstId) this.loadChatHistory(firstId);
+            }
+        };
+        this.scrollChatBottom();
+    },
+
+    closeChat() {
+        document.getElementById('chatPanel').style.display = 'none';
+    },
+
+    getChatChars() {
+        const chars = Object.keys(this.charData).length > 0 ? this.charData : (this.state.characters || {});
+        return Object.keys(chars).filter(name => !chars[name]?.is_system_user && chars[name]?.role !== '我');
+    },
+
+    renderChatChars() {
+        const container = document.getElementById('chatChars');
+        const names = this.getChatChars();
+        if (names.length === 0) {
+            container.innerHTML = '<span style="font-size:12px;color:var(--stone-400)">无可用角色</span>';
+            return;
+        }
+        container.innerHTML = names.map(name => {
+            const c = (this.charData[name] || this.state.characters[name] || {});
+            const active = name === this.chatChar ? ' active' : '';
+            return `<button class="chat-char-btn${active}" onclick="App.selectChatChar('${name}')">
+                <img src="${getAvatarUrl(name)}" alt="${name}" onerror="this.style.display='none'">
+                ${name}
+            </button>`;
+        }).join('');
+    },
+
+    async selectChatChar(name) {
+        this.chatChar = name;
+        this.chatHistory = [];
+        this.renderChatChars();
+        await this.loadChatHistory();
+        document.getElementById('chatTitle').textContent = `💬 与 ${name} 对话`;
+    },
+
+    async loadChatHistory(beforeId = null) {
+        try {
+            let url = `/api/chat/history/${encodeURIComponent(this.chatChar)}`;
+            if (beforeId) url += `?before=${beforeId}`;
+            const resp = await fetch(url);
+            const data = await resp.json();
+            const msgs = (data.history || []).map(h => ({
+                role: h.role === 'user' ? 'user' : 'character',
+                content: h.content,
+                id: h.id,
+            }));
+            const container = document.getElementById('chatMessages');
+            const oldScrollHeight = container ? container.scrollHeight : 0;
+            if (beforeId) {
+                this.chatHistory = [...msgs, ...this.chatHistory];
+            } else {
+                this.chatHistory = msgs;
+            }
+            this.renderChatMessages();
+            // 加载历史后保持滚动位置
+            if (beforeId && container) {
+                requestAnimationFrame(() => {
+                    container.scrollTop = container.scrollHeight - oldScrollHeight;
+                });
+            }
+        } catch (e) { /* ignore */ }
+    },
+
+    renderChatMessages() {
+        const container = document.getElementById('chatMessages');
+        if (this.chatHistory.length === 0) {
+            container.innerHTML = `<div class="chat-empty">跟 ${this.chatChar || '家人'} 聊聊天吧</div>`;
+            return;
+        }
+        container.innerHTML = this.chatHistory.map(msg => {
+            const cls = msg.role === 'user' ? 'user' : 'character';
+            const sender = msg.role === 'user' ? '你' : this.chatChar;
+            return `<div class="chat-msg ${cls}">
+                <div class="msg-sender">${sender}</div>
+                <div>${this.escapeHtml(msg.content)}</div>
+            </div>`;
+        }).join('');
+        this.scrollChatBottom();
+    },
+
+    scrollChatBottom() {
+        setTimeout(() => {
+            const el = document.getElementById('chatMessages');
+            if (el) el.scrollTop = el.scrollHeight;
+        }, 100);
+    },
+
+    async sendMessage() {
+        if (!this.chatChar) return;
+        const input = document.getElementById('chatInput');
+        const text = input.value.trim();
+        if (!text) return;
+
+        input.value = '';
+        input.disabled = true;
+        document.querySelector('.chat-send-btn').disabled = true;
+
+        // 添加用户消息
+        this.chatHistory.push({ role: 'user', content: text });
+        this.renderChatMessages();
+
+        // 显示"正在输入"
+        const msgs = document.getElementById('chatMessages');
+        const typing = document.createElement('div');
+        typing.className = 'chat-typing';
+        typing.textContent = `${this.chatChar}正在输入...`;
+        msgs.appendChild(typing);
+        this.scrollChatBottom();
+
+        try {
+            const resp = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    character: this.chatChar,
+                    message: text,
+                    history: this.chatHistory.slice(0, -1),
+                }),
+            });
+            const data = await resp.json();
+            if (!resp.ok) throw new Error(data.detail);
+
+            typing.remove();
+            this.chatHistory.push({ role: 'character', content: data.reply });
+            this.renderChatMessages();
+        } catch (e) {
+            typing.remove();
+            this.chatHistory.push({ role: 'character', content: '（抱歉，我暂时无法回复...）' });
+            this.renderChatMessages();
+        }
+
+        input.disabled = false;
+        document.querySelector('.chat-send-btn').disabled = false;
+        input.focus();
+    },
+
+    // ─── 模型配置 ──────────────────────────────────
+    modelList: [],
+
+    async openModelConfig() {
+        try {
+            const resp = await fetch('/api/models');
+            const data = await resp.json();
+            const active = data.models?.find(m => m.is_active) || {};
+            document.getElementById('editModelName').value = active.id || data.active_id || '';
+            document.getElementById('editApiBase').value = active.api_base || '';
+            document.getElementById('editApiKey').value = active.api_key || '';
+            document.getElementById('editTemp').value = (data.config || {}).temperature || '0.75';
+            document.getElementById('editMaxTokens').value = (data.config || {}).max_tokens || '2000';
+            document.getElementById('editTopP').value = (data.config || {}).top_p || '0.9';
+            document.getElementById('modelModal').style.display = 'flex';
+        } catch (e) { this.showError('加载模型配置失败'); }
+    },
+
+    closeModelConfig() { document.getElementById('modelModal').style.display = 'none'; },
+
+    toggleApiKey() {
+        const el = document.getElementById('editApiKey');
+        el.type = el.type === 'password' ? 'text' : 'password';
+    },
+
+    async saveModelConfig() {
+        const statusEl = document.getElementById('modelSaveStatus');
+        statusEl.textContent = '保存中...';
+        statusEl.style.color = 'var(--stone-500)';
+
+        const modelName = document.getElementById('editModelName').value.trim();
+        const apiBase = document.getElementById('editApiBase').value.trim();
+        const apiKey = document.getElementById('editApiKey').value.trim();
+        const temp = document.getElementById('editTemp').value;
+        const maxTok = document.getElementById('editMaxTokens').value;
+        const topP = document.getElementById('editTopP').value;
+
+        try {
+            // 更新或创建模型记录
+            await fetch(`/api/models/${encodeURIComponent(modelName)}`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ api_base: apiBase, api_key: apiKey, label: modelName }),
+            });
+            // 切换激活
+            const resp = await fetch('/api/models/activate', {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ model_id: modelName }),
+            });
+            if (!resp.ok) throw new Error((await resp.json()).detail);
+            // 保存参数
+            await fetch('/api/config', {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ temperature: parseFloat(temp), max_tokens: parseInt(maxTok), top_p: parseFloat(topP) }),
+            });
+
+            statusEl.textContent = '已保存，刷新生效';
+            statusEl.style.color = 'var(--emerald-500)';
+            setTimeout(() => { this.closeModelConfig(); location.reload(); }, 1500);
+        } catch (e) {
+            statusEl.textContent = e.message;
+            statusEl.style.color = 'var(--orange-600)';
+        }
+    },
+
+    // ─── 人物编辑 ──────────────────────────────────
+    charData: {},
+    currentChar: '',
+
+    async openCharEditor() {
+        try {
+            const resp = await fetch('/api/characters');
+            const data = await resp.json();
+            this.charData = data.characters;
+            const sysUser = Object.keys(this.charData).find(n => this.charData[n]?.is_system_user);
+            this.currentChar = sysUser || Object.keys(this.charData)[0] || '';
+        } catch (e) {
+            this.showError('加载人物数据失败');
+            return;
+        }
+        this.renderCharTabs();
+        this.renderCharEditor();
+        document.getElementById('charModal').style.display = 'flex';
+    },
+
+    closeCharEditor() {
+        document.getElementById('charModal').style.display = 'none';
+    },
+
+    renderCharTabs() {
+        const tabs = document.getElementById('charTabs');
+        const names = Object.keys(this.charData).sort((a, b) => {
+            if (this.charData[a]?.is_system_user) return -1;
+            if (this.charData[b]?.is_system_user) return 1;
+            return 0;
+        });
+        tabs.innerHTML = names.map(name => {
+            const c = this.charData[name];
+            const label = c.is_system_user ? '🔷 系统用户人设' : name;
+            return `<button class="char-tab${name === this.currentChar ? ' active' : ''}"
+                          onclick="App.switchCharTab('${name}')">${label}</button>`;
+        }).join('');
+    },
+
+    switchCharTab(name) {
+        this.currentChar = name;
+        this.renderCharTabs();
+        this.renderCharEditor();
+    },
+
+    renderCharEditor() {
+        const c = this.charData[this.currentChar];
+        if (!c) return;
+        const body = document.getElementById('charEditorBody');
+        const sched = typeof c.schedule === 'object' ? Object.entries(c.schedule).map(([k,v]) => `${k}: ${v}`).join('\n') : (c.schedule || '');
+        const rels = typeof c.relationships === 'object' ? Object.entries(c.relationships).map(([k,v]) => `${k}: ${v}`).join('\n') : (c.relationships || '');
+        const phrases = Array.isArray(c.catchphrases) ? c.catchphrases.join('\n') : (c.catchphrases || '');
+
+        body.innerHTML = `
+            ${!c.is_system_user ? `
+            <div style="display:flex;gap:12px;margin-bottom:16px">
+                <div class="char-field" style="flex:1">
+                    <label>角色</label>
+                    <input type="text" id="editRole" class="model-input" value="${this.escapeHtml(c.role || '')}">
+                </div>
+                <div class="char-field" style="flex:1">
+                    <label>年龄</label>
+                    <input type="number" id="editAge" class="model-input" value="${c.age || 0}" min="1" max="120">
+                </div>
+                <div class="char-field" style="flex:2">
+                    <label>职业</label>
+                    <input type="text" id="editOccupation" class="model-input" value="${this.escapeHtml(c.occupation || '')}">
+                </div>
+            </div>
+            ` : `
+            <div style="margin-bottom:16px;padding:8px 12px;background:var(--amber-50);border-radius:var(--radius-sm);font-size:13px;color:var(--amber-600)">
+                🔷 系统用户 — 聊天身份，不出现在家庭场景中
+            </div>
+            `}
+            <div class="char-field">
+                <label>性格人设 <span class="hint">（核心 Prompt，影响角色行为）</span></label>
+                <textarea class="tall" id="editPersonality">${this.escapeHtml(c.personality_profile || '')}</textarea>
+            </div>
+            <div class="char-field">
+                <label>口头禅 <span class="hint">（每行一条）</span></label>
+                <textarea id="editPhrases" rows="4">${this.escapeHtml(phrases)}</textarea>
+            </div>
+            <div class="char-field">
+                <label>生活轨迹 <span class="hint">（格式：时间: 活动，每行一条）</span></label>
+                <textarea id="editSchedule" rows="6">${this.escapeHtml(sched)}</textarea>
+            </div>
+            <div class="char-field">
+                <label>家庭关系 <span class="hint">（格式：人名: 关系描述，每行一条）</span></label>
+                <textarea id="editRelationships" rows="5">${this.escapeHtml(rels)}</textarea>
+            </div>`;
+    },
+
+    async saveCharacter() {
+        const name = this.currentChar;
+        const c = this.charData[name] || {};
+        const personality = document.getElementById('editPersonality')?.value || '';
+        const phrasesRaw = document.getElementById('editPhrases')?.value || '';
+        const schedRaw = document.getElementById('editSchedule')?.value || '';
+        const relsRaw = document.getElementById('editRelationships')?.value || '';
+
+        const catchphrases = phrasesRaw.split('\n').map(s => s.trim()).filter(s => s);
+        const schedule = {};
+        schedRaw.split('\n').forEach(line => {
+            const m = line.match(/^(\d{1,2}:\d{2})\s*[:：]\s*(.+)/);
+            if (m) schedule[m[1]] = m[2].trim();
+        });
+        const relationships = {};
+        relsRaw.split('\n').forEach(line => {
+            const m = line.match(/^(.+?)[:：]\s*(.+)/);
+            if (m) relationships[m[1].trim()] = m[2].trim();
+        });
+
+        const body = { personality_profile: personality, catchphrases, schedule, relationships };
+        // 基础属性（系统用户不可修改）
+        if (!c.is_system_user) {
+            body.role = document.getElementById('editRole')?.value || '';
+            body.age = parseInt(document.getElementById('editAge')?.value) || 0;
+            body.occupation = document.getElementById('editOccupation')?.value || '';
+        }
+
+        const statusEl = document.getElementById('charSaveStatus');
+        statusEl.textContent = '⏳ 保存中...';
+        statusEl.style.color = 'var(--stone-500)';
+
+        try {
+            const resp = await fetch(`/api/characters/${encodeURIComponent(name)}`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            });
+            const data = await resp.json();
+            if (!resp.ok) throw new Error(data.detail || '保存失败');
+
+            Object.assign(this.charData[name], body);
+            this.charData[name].personality_profile = personality;
+            this.charData[name].catchphrases = catchphrases;
+            this.charData[name].schedule = schedule;
+            this.charData[name].relationships = relationships;
+
+            statusEl.textContent = '✅ 已保存！';
+            statusEl.style.color = 'var(--emerald-500)';
+            setTimeout(() => { statusEl.textContent = ''; }, 2000);
+        } catch (e) {
+            statusEl.textContent = '❌ ' + e.message;
+            statusEl.style.color = 'var(--orange-600)';
+        }
+    },
+};
+
+document.addEventListener('DOMContentLoaded', () => App.init());
+</script>
+
+<style>
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+    to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+</style>
+
+</body>
+</html>
