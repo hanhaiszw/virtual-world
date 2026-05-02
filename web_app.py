@@ -502,15 +502,15 @@ if __name__ == "__main__":
         print("  ⚠️  模拟器未初始化（缺少 API Key）")
 
     print(f"  🎬 场景:    {len(db.get_scene_presets())} 个预设")
-    print(f"  🌐 地址:    http://127.0.0.1:8080")
-    print(f"  📝 API:     http://127.0.0.1:8080/docs")
+    print(f"  🌐 地址:    http://127.0.0.1:12300")
+    print(f"  📝 API:     http://127.0.0.1:12300/docs")
     print("━" * 48)
     print()
 
     uvicorn.run(
         "web_app:app",
         host="127.0.0.1",
-        port=8080,
+        port=12300,
         reload=True,
         log_level="warning",
     )
