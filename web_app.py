@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-虚拟家庭模拟器 - Web 服务
+模拟人生 - Web 服务
 FastAPI 后端 + 线程池处理 LLM 调用
 """
 
@@ -34,7 +34,8 @@ logger = logging.getLogger(__name__)
 # ─── 全局状态 ─────────────────────────────────────────
 sim: Optional[FamilySimulation] = None
 _executor = ThreadPoolExecutor(max_workers=1)
-templates = Jinja2Templates(directory="templates")
+_BASE_DIR = Path(__file__).parent
+templates = Jinja2Templates(directory=str(_BASE_DIR / "templates"))
 
 
 
@@ -55,8 +56,8 @@ async def lifespan(app: FastAPI):
     _executor.shutdown(wait=False)
 
 
-app = FastAPI(lifespan=lifespan, title="虚拟家庭模拟器")
-app.mount("/img", StaticFiles(directory="img"), name="img")
+app = FastAPI(lifespan=lifespan, title="模拟人生", root_path="/virtual-world")
+app.mount("/img", StaticFiles(directory=str(_BASE_DIR / "img")), name="img")
 
 app.add_middleware(
     CORSMiddleware,
@@ -98,7 +99,7 @@ async def index(request: Request):
     if sim is None:
         init_error = "未配置 API Key，请在「⚙️ 模型配置」中设置 API Key"
 
-    return templates.TemplateResponse("index.html", {
+    return templates.TemplateResponse(request, "index.html", {
         "request": request,
         "has_api_key": sim is not None,
         "init_error": init_error,
@@ -189,8 +190,20 @@ async def get_models():
     models = db.list_models()
     active = db.get_active_model()
     config = db.get_config()
+
+    # 脱敏：不返回明文 api_key
+    safe_models = []
+    for m in models:
+        m = dict(m)
+        m["has_api_key"] = bool(m.pop("api_key", None))
+        safe_models.append(m)
+
+    if active:
+        active = dict(active)
+        active["has_api_key"] = bool(active.pop("api_key", None))
+
     return {
-        "models": models,
+        "models": safe_models,
         "active_id": active["id"] if active else "",
         "config": config,
     }
@@ -222,16 +235,22 @@ async def activate_model(data: dict):
 @app.put("/api/models/{model_id}")
 async def update_model_config(model_id: str, data: dict):
     """更新模型 api_base / api_key，不存在则创建"""
+    api_key = data.get("api_key", "").strip()
+    updates = {"api_base": data.get("api_base", "").strip()}
+    # 只有输入了新的 api_key 才更新
+    if api_key:
+        updates["api_key"] = api_key
+
     conn = db.get_conn()
     exists = conn.execute("SELECT id FROM models WHERE id=?", (model_id,)).fetchone()
     if not exists:
         conn.execute(
             "INSERT INTO models (id, label, api_type, api_base, api_key, max_tokens, is_active) VALUES (?,?,?,?,?,?,0)",
             (model_id, data.get("label", model_id), "openai",
-             data.get("api_base", ""), data.get("api_key", ""), 8192),
+             data.get("api_base", ""), api_key, 8192),
         )
     conn.close()
-    db.update_model(model_id, {"api_base": data.get("api_base", ""), "api_key": data.get("api_key", "")})
+    db.update_model(model_id, updates)
     return {"ok": True}
 
 
@@ -491,7 +510,7 @@ if __name__ == "__main__":
     import uvicorn
 
     print()
-    print("🏠 虚拟家庭模拟器 Web 服务")
+    print("🏠 模拟人生 Web 服务")
     print("━" * 48)
 
     if sim is not None:
@@ -510,7 +529,7 @@ if __name__ == "__main__":
     uvicorn.run(
         "web_app:app",
         host="127.0.0.1",
-        port=12300,    #
-        reload=True,
+        port=12300,
+        reload=False,
         log_level="warning",
     )

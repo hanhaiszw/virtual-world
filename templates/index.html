@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>虚拟家庭</title>
+<title>模拟人生</title>
 <style>
 /* ─── Reset & Variables ───────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -696,20 +696,250 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--stone-300); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--stone-500); }
 
+/* ─── Mobile-only Elements (hidden on desktop) ────── */
+.hamburger-btn {
+    display: none;
+    width: 40px; height: 40px;
+    border: none; background: none;
+    font-size: 22px; cursor: pointer;
+    color: var(--stone-700);
+    border-radius: var(--radius-sm);
+    align-items: center; justify-content: center;
+}
+.hamburger-btn:active { background: var(--stone-100); }
+
+.mobile-nav {
+    display: none;
+    position: fixed;
+    top: 48px; right: 8px;
+    background: white;
+    border-radius: var(--radius-md);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    z-index: 200;
+    min-width: 170px;
+    overflow: hidden;
+    animation: modalIn 0.15s ease;
+}
+.mobile-nav.open { display: block; }
+.mobile-nav-item {
+    display: flex; align-items: center; gap: 8px;
+    padding: 14px 16px; font-size: 14px;
+    color: var(--stone-700); cursor: pointer;
+    border: none; background: none; width: 100%;
+    text-align: left; font-family: var(--font-ui);
+    transition: background 0.12s;
+}
+.mobile-nav-item:active { background: var(--amber-50); }
+.mobile-nav-item + .mobile-nav-item { border-top: 1px solid var(--stone-100); }
+
+.mobile-nav-overlay {
+    display: none; position: fixed; inset: 0; z-index: 199;
+}
+
+.sidebar-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4); z-index: 599;
+}
+
+.sidebar-close {
+    display: none;
+    width: 32px; height: 32px; border: none; background: none;
+    font-size: 20px; cursor: pointer; color: var(--stone-400);
+    border-radius: 50%; align-items: center; justify-content: center;
+    transition: all 0.15s;
+}
+.sidebar-close:active { background: var(--stone-100); color: var(--stone-700); }
+
+.fab-scenes {
+    display: none;
+    position: fixed; bottom: 64px; right: 16px;
+    width: 52px; height: 52px; border-radius: 50%;
+    background: var(--amber-500); color: white;
+    font-size: 22px; border: none; cursor: pointer;
+    align-items: center; justify-content: center;
+    box-shadow: 0 4px 20px rgba(245,158,11,0.45);
+    z-index: 400; transition: transform 0.2s;
+}
+.fab-scenes:active { transform: scale(0.92); background: var(--amber-600); }
+
 /* ─── Responsive ───────────────────────────────────── */
 @media (max-width: 768px) {
-    .app-body { flex-direction: column; }
-    .sidebar {
-        width: 100%; min-width: 100%;
-        max-height: 40vh;
-        border-right: none;
-        border-bottom: 1px solid var(--stone-200);
+    /* Show mobile-only elements */
+    .hamburger-btn { display: flex; }
+    .fab-scenes { display: flex; }
+    .sidebar-close { display: flex; }
+
+    /* Header */
+    .app-header {
+        padding: 0 12px;
+        height: 48px;
+        position: fixed; top: 0; left: 0; right: 0;
     }
-    .main-content { padding: 16px; }
-    .scene-card { padding: 16px 20px; }
-    .scene-content { font-size: 15px; }
+    .app-title { font-size: 16px; }
+    .app-title .icon { font-size: 18px; }
+    .header-right { gap: 6px; }
+    .header-btn.desktop-only { display: none; }
+    .status-bar { font-size: 11px; gap: 4px; }
+    .status-dot { width: 6px; height: 6px; }
+
+    /* Layout */
+    .app-body {
+        flex-direction: column;
+        height: calc(100vh - 48px - 40px);
+        margin-top: 48px;
+    }
+
+    /* Sidebar → slide-in drawer */
+    .sidebar {
+        position: fixed; top: 0; left: 0;
+        width: 85vw; max-width: 300px; height: 100%;
+        min-width: auto; max-height: none;
+        z-index: 600;
+        transform: translateX(-100%);
+        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: none;
+        border-right: none;
+        border-bottom: none;
+        padding-top: 12px;
+    }
+    .sidebar.open {
+        transform: translateX(0);
+        box-shadow: 6px 0 32px rgba(0,0,0,0.18);
+    }
+    .sidebar-overlay.open { display: block; }
+
+    /* Main content */
+    .main-content { padding: 12px; }
+
+    /* Scene card */
+    .scene-card { padding: 16px; border-radius: var(--radius-md); }
+    .scene-content { font-size: 15px; max-height: none; }
+    .scene-meta { gap: 6px; margin-bottom: 12px; }
+    .scene-badge { font-size: 11px; padding: 3px 10px; }
+    .scene-location { font-size: 12px; }
+    .scene-model { font-size: 11px; margin-top: 12px; padding-top: 8px; }
+
+    /* Welcome */
+    .welcome { padding: 24px 16px; }
+    .welcome-characters { gap: 12px; }
     .welcome-characters img { width: 48px; height: 48px; }
+    .welcome-text { font-size: 16px; text-align: center; }
+    .welcome-sub { font-size: 12px; text-align: center; }
+
+    /* Chat panel — full screen */
+    .chat-panel {
+        width: 100%; max-width: 100%;
+        top: 0; left: 0; right: 0; bottom: 0;
+    }
+    .chat-header { padding: 12px 14px; }
+    .chat-header h3 { font-size: 15px; }
+    .chat-chars { padding: 8px 10px; gap: 4px; overflow-x: auto; }
+    .chat-char-btn { padding: 6px 10px; font-size: 12px; }
+    .chat-messages { padding: 10px 12px; gap: 8px; }
+    .chat-msg { font-size: 13px; padding: 8px 12px; }
+    .chat-input-area { padding: 10px; gap: 6px; }
+    .chat-input { font-size: 14px; padding: 10px 14px; }
+
+    /* Modals — full screen */
+    .modal-overlay { align-items: stretch; }
+    .modal-panel {
+        width: 100vw; max-width: 100vw;
+        height: 100vh; max-height: 100vh;
+        border-radius: 0;
+    }
+    .modal-header { padding: 12px 16px; }
+    .modal-header h2 { font-size: 16px; }
+    .modal-tabs { padding: 6px 12px; gap: 2px; }
+    .char-tab { font-size: 12px; padding: 8px 12px; min-height: 36px; }
+    .modal-body { padding: 12px 16px; }
+    .modal-footer { padding: 10px 16px; }
+    .char-field { margin-bottom: 12px; }
+    .char-field label { font-size: 12px; }
+    .char-field textarea { font-size: 13px; min-height: 60px; }
+    .char-field textarea.tall { min-height: 120px; }
+    .char-meta { flex-wrap: wrap; gap: 8px; font-size: 12px; }
+
+    /* Footer */
+    .app-footer {
+        height: 40px; padding: 0 10px; gap: 6px;
+        position: fixed; bottom: 0; left: 0; right: 0;
+        z-index: 100;
+    }
+    .footer-label { font-size: 11px; }
+    .history-strip { gap: 4px; }
+    .history-item { font-size: 11px; padding: 3px 8px; }
+
+    /* Character avatars in scene */
     .char-avatar img { width: 40px; height: 40px; }
+    .scene-characters { gap: 10px; margin-bottom: 14px; padding-bottom: 12px; }
+    .char-avatar .name { font-size: 11px; }
+
+    /* Loading */
+    .scene-loading { padding: 40px 16px; gap: 16px; }
+    .loading-char { width: 36px; height: 36px; }
+    .loading-text { font-size: 13px; flex-direction: column; align-items: center; gap: 2px; }
+    .loading-bar { width: 180px; }
+
+    /* Error */
+    .scene-error { padding: 32px 16px; }
+    .scene-error .err-icon { font-size: 40px; }
+
+    /* Touch-friendly minimum sizes */
+    .gen-btn { min-height: 46px; font-size: 15px; }
+    .chat-send-btn { min-height: 44px; min-width: 52px; }
+    .retry-btn { min-height: 40px; padding: 8px 20px; }
+    .header-btn { min-height: 36px; font-size: 12px; padding: 5px 12px; }
+    .modal-close { width: 36px; height: 36px; font-size: 20px; }
+    .tmpl-edit, .tmpl-delete { width: 28px; height: 28px; }
+
+    /* Error toast */
+    .error-toast {
+        bottom: 50px; left: 16px; right: 16px;
+        transform: none; text-align: center;
+        font-size: 13px; padding: 10px 20px;
+    }
+
+    /* History strip */
+    .history-empty { font-size: 11px; }
+
+    /* Model config inputs */
+    .model-select, .model-input { font-size: 13px; padding: 10px 12px; }
+
+    /* Sidebar sections */
+    .sidebar-section { padding: 12px 14px 6px; }
+    .sidebar-section h3 { font-size: 12px; }
+    .scene-list { padding: 0 8px 8px; }
+    .scene-item { padding: 10px 12px; }
+    .scene-item-key { font-size: 13px; }
+    .scene-item-time { font-size: 11px; }
+    .person-mini-tag { font-size: 10px; padding: 1px 6px; }
+    .scene-item-vibe { font-size: 11px; }
+
+    /* Custom scene section */
+    .custom-section { padding: 12px 14px 6px; }
+    .custom-section textarea { font-size: 14px; min-height: 50px; }
+
+    /* Scene editor modal inputs */
+    #seTime, #seLocation { font-size: 13px; }
+
+    /* Status bar */
+    #statusText { max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
+
+/* Extra small screens */
+@media (max-width: 400px) {
+    .app-title { font-size: 14px; }
+    .app-title .icon { font-size: 16px; }
+    .header-right { gap: 2px; }
+    .status-bar { font-size: 10px; }
+    .scene-content { font-size: 14px; }
+    .scene-badge { font-size: 10px; padding: 2px 8px; }
+    .char-avatar img { width: 32px; height: 32px; }
+    .char-avatar .name { font-size: 10px; }
+    .chat-msg { font-size: 13px; }
+    .chat-char-btn { font-size: 11px; padding: 5px 8px; }
+    .fab-scenes { width: 46px; height: 46px; font-size: 20px; bottom: 56px; right: 12px; }
+    .sidebar { width: 88vw; }
 }
 </style>
 </head>
@@ -719,26 +949,43 @@ body {
 <header class="app-header">
     <div class="app-title">
         <span class="icon">🏠</span>
-        <span>虚拟家庭</span>
+        <span>模拟人生</span>
     </div>
     <div class="header-right">
-        <button class="header-btn" onclick="App.openChat()">💬 对话</button>
-        <button class="header-btn" onclick="App.openCharEditor()">👤 人物管理</button>
-        <button class="header-btn" onclick="App.openModelConfig()">⚙️ 模型配置</button>
+        <button class="header-btn desktop-only" onclick="App.openChat()">💬 对话</button>
+        <button class="header-btn desktop-only" onclick="App.openCharEditor()">👤 人物管理</button>
+        <button class="header-btn desktop-only" onclick="App.openModelConfig()">⚙️ 模型配置</button>
+        <button class="header-btn" onclick="App.openIntro()" style="font-size:12px">📖 简介</button>
         <div class="status-bar" id="statusBar">
             <span class="status-dot" id="statusDot"></span>
             <span id="statusText">加载中...</span>
         </div>
+        <button class="hamburger-btn" onclick="App.toggleMobileNav()" aria-label="菜单">☰</button>
     </div>
 </header>
+
+<!-- ─── Mobile Navigation Dropdown ──────────────────── -->
+<div class="mobile-nav" id="mobileNav">
+    <button class="mobile-nav-item" onclick="App.openIntro();App.closeMobileNav()">📖 功能简介</button>
+    <button class="mobile-nav-item" onclick="App.openChat();App.closeMobileNav()">💬 人物对话</button>
+    <button class="mobile-nav-item" onclick="App.openCharEditor();App.closeMobileNav()">👤 人物管理</button>
+    <button class="mobile-nav-item" onclick="App.openModelConfig();App.closeMobileNav()">⚙️ 模型配置</button>
+</div>
+<div class="mobile-nav-overlay" id="mobileNavOverlay" onclick="App.closeMobileNav()"></div>
+
+<!-- ─── Sidebar Overlay (mobile) ────────────────────── -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="App.closeSidebar()"></div>
 
 <!-- ─── Body ────────────────────────────────────────── -->
 <div class="app-body">
     <!-- Sidebar -->
-    <aside class="sidebar">
+    <aside class="sidebar" id="sidebar">
         <div class="sidebar-section" style="display:flex;align-items:center;justify-content:space-between">
             <h3 style="margin:0">📋 场景列表</h3>
-            <button class="scene-add-btn" onclick="App.openSceneEditor()">＋ 新建</button>
+            <div style="display:flex;align-items:center;gap:4px">
+                <button class="scene-add-btn" onclick="App.openSceneEditor()">＋ 新建</button>
+                <button class="sidebar-close" onclick="App.closeSidebar()" aria-label="关闭">✕</button>
+            </div>
         </div>
         <div class="scene-list" id="sceneList">
             <div class="history-empty" style="padding:12px">加载中...</div>
@@ -781,7 +1028,7 @@ body {
 <!-- ─── Chat Panel ────────────────────────────────────── -->
 <div class="chat-panel" id="chatPanel" style="display:none">
     <div class="chat-header">
-        <h3 id="chatTitle">💬 家庭对话</h3>
+        <h3 id="chatTitle">💬 人物对话</h3>
         <button class="modal-close" onclick="App.closeChat()">✕</button>
     </div>
     <div class="chat-chars" id="chatChars"></div>
@@ -861,9 +1108,8 @@ body {
                 <input type="text" id="editApiBase" class="model-input" placeholder="https://api.deepseek.com">
             </div>
             <div class="char-field">
-                <label>API Key</label>
+                <label>API Key <span class="hint" id="apiKeyHint"></span></label>
                 <input type="password" id="editApiKey" class="model-input" placeholder="sk-...">
-                <button type="button" onclick="App.toggleApiKey()" style="font-size:12px;margin-top:4px;border:none;background:none;color:var(--stone-500);cursor:pointer">显示/隐藏</button>
             </div>
             <hr style="border:none;border-top:1px solid var(--stone-200);margin:16px 0">
             <div style="display:flex;gap:16px">
@@ -888,6 +1134,34 @@ body {
     </div>
 </div>
 
+<!-- ─── Feature Intro Modal ────────────────────────────── -->
+<div class="modal-overlay" id="introModal" style="display:none">
+    <div class="modal-panel" style="max-width:560px">
+        <div class="modal-header">
+            <h2>📖 功能简介</h2>
+            <button class="modal-close" onclick="App.closeIntro()">✕</button>
+        </div>
+        <div class="modal-body" style="line-height:1.8;font-size:14px;color:var(--stone-700)">
+            <p style="font-size:18px;font-weight:700;color:var(--stone-800);margin-bottom:12px">🏠 模拟人生 — 一个 AI 驱动的家庭生活模拟器</p>
+
+            <p>欢迎来到一个温馨的四口之家。这里生活着<strong>爸爸王建国</strong>（软件架构师）、<strong>妈妈李梅</strong>（语文老师）、<strong>姐姐王小月</strong>（高一学生）和<strong>弟弟王小华</strong>（小学生），还有你——<strong>瀚海</strong>，这个家的一份子。</p>
+
+            <p style="margin-top:14px;font-weight:600;color:var(--stone-800)">✨ 你可以：</p>
+            <ul style="padding-left:20px;margin-top:4px">
+                <li><strong>📋 生成场景</strong> — 选择一个预设场景（早餐、晚餐、周末等），AI 会为你演绎这个家庭真实而温暖的日常片段。</li>
+                <li><strong>💬 与家人对话</strong> — 随时和任意一位家庭成员 1v1 聊天。每个人都拥有完整的性格人设，会用符合自己身份的语气回应你。</li>
+                <li><strong>✏️ 自定义场景</strong> — 自己设定时间、地点、出场人物和剧情走向，创造出属于你的独家故事。</li>
+                <li><strong>👤 人物管理</strong> — 编辑每个人的人设、口头禅、生活习惯和家庭关系，让角色更加鲜活。</li>
+                <li><strong>⚙️ 模型配置</strong> — 自由切换底层大模型（DeepSeek / Claude / GPT 等），调整输出参数。</li>
+            </ul>
+
+            <p style="margin-top:14px;padding:12px 16px;background:var(--amber-50);border-radius:var(--radius-sm);font-size:13px;color:var(--amber-600)">
+                💡 <strong>提示：</strong>场景生成可能需要几秒到十几秒，取决于模型和网络。你可以在左侧场景列表快速切换预设场景，也可以输入完全自定义的场景描述。
+            </p>
+        </div>
+    </div>
+</div>
+
 <!-- ─── Footer / History ────────────────────────────── -->
 <footer class="app-footer">
     <span class="footer-label">📜 历史记录</span>
@@ -896,9 +1170,13 @@ body {
     </div>
 </footer>
 
+<!-- ─── Mobile FAB ──────────────────────────────────── -->
+<button class="fab-scenes" onclick="App.toggleSidebar()" aria-label="场景列表" title="场景列表">📋</button>
+
 <!-- ─── Script ──────────────────────────────────────── -->
 <script>
 // ─── 角色头像映射 ────────────────────────────────────
+const ROOT_PATH = "{{ request.scope.root_path }}";
 const AVATAR_FILES = {
     '王建国': '爸爸.png',
     '李梅':   '妈妈.png',
@@ -908,7 +1186,7 @@ const AVATAR_FILES = {
 
 function getAvatarUrl(name) {
     const file = AVATAR_FILES[name];
-    return file ? `/img/${encodeURIComponent(file)}` : '';
+    return file ? `${ROOT_PATH}/img/${encodeURIComponent(file)}` : '';
 }
 
 function avatarHtml(name, size) {
@@ -953,6 +1231,14 @@ const App = {
         document.getElementById('genBtn').disabled = true;
         this.hideWelcome();
         {% endif %}
+
+        // 窗口大小变化时清理移动端状态
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                this.closeMobileNav();
+                this.closeSidebar();
+            }
+        });
     },
 
     async loadCharNames() {
@@ -987,6 +1273,44 @@ const App = {
             const key = item.dataset.key;
             if (!isNaN(idx)) this.selectTemplate(key, idx);
         });
+        // 全局点击关闭移动端弹出层
+        document.addEventListener('click', (e) => {
+            const nav = document.getElementById('mobileNav');
+            if (nav.classList.contains('open') &&
+                !e.target.closest('.mobile-nav') &&
+                !e.target.closest('.hamburger-btn')) {
+                this.closeMobileNav();
+            }
+        });
+    },
+
+    // ─── 移动端导航 ────────────────────────────────
+    toggleMobileNav() {
+        const nav = document.getElementById('mobileNav');
+        const overlay = document.getElementById('mobileNavOverlay');
+        const btn = document.querySelector('.hamburger-btn');
+        const isOpen = nav.classList.toggle('open');
+        overlay.classList.toggle('open', isOpen);
+        if (btn) btn.textContent = isOpen ? '✕' : '☰';
+    },
+
+    closeMobileNav() {
+        document.getElementById('mobileNav').classList.remove('open');
+        document.getElementById('mobileNavOverlay').classList.remove('open');
+        const btn = document.querySelector('.hamburger-btn');
+        if (btn) btn.textContent = '☰';
+    },
+
+    toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        const isOpen = sidebar.classList.toggle('open');
+        overlay.classList.toggle('open', isOpen);
+    },
+
+    closeSidebar() {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('sidebarOverlay').classList.remove('open');
     },
 
     async loadStatus() {
@@ -1177,6 +1501,7 @@ const App = {
             };
         }
         this.renderSceneList();
+        this.closeSidebar();
         this.generateScene();
     },
 
@@ -1304,7 +1629,7 @@ const App = {
                 <div class="scene-model">🧠 ${this.escapeHtml(scene.model || '?')}</div>
             </div>`;
 
-        document.title = `📖 ${scene.time || '场景'} - 虚拟家庭模拟器`;
+        document.title = `📖 ${scene.time || '场景'} - 模拟人生`;
     },
 
     renderSceneError(msg) {
@@ -1444,11 +1769,12 @@ const App = {
         if (!this.chatChar && this.getNames().length > 0) {
             this.selectChatChar(this.getNames()[0]);
         } else if (this.chatChar) {
+            document.getElementById('chatTitle').textContent = `💬 与 ${this.chatChar} 对话`;
             this.loadChatHistory();
         }
         const msgs = document.getElementById('chatMessages');
         msgs.onscroll = () => {
-            if (msgs.scrollTop === 0 && this.chatHistory.length > 0) {
+            if (msgs.scrollTop <= 5 && this.chatHistory.length > 0 && !this.chatLoadingMore) {
                 const firstId = this.chatHistory[0]?.id;
                 if (firstId) this.loadChatHistory(firstId);
             }
@@ -1485,12 +1811,15 @@ const App = {
     async selectChatChar(name) {
         this.chatChar = name;
         this.chatHistory = [];
+        this.chatLoadingMore = false;
         this.renderChatChars();
         await this.loadChatHistory();
         document.getElementById('chatTitle').textContent = `💬 与 ${name} 对话`;
     },
 
     async loadChatHistory(beforeId = null) {
+        if (this.chatLoadingMore) return;
+        this.chatLoadingMore = true;
         try {
             let url = `/api/chat/history/${encodeURIComponent(this.chatChar)}`;
             if (beforeId) url += `?before=${beforeId}`;
@@ -1502,20 +1831,29 @@ const App = {
                 id: h.id,
             }));
             const container = document.getElementById('chatMessages');
-            const oldScrollHeight = container ? container.scrollHeight : 0;
             if (beforeId) {
-                this.chatHistory = [...msgs, ...this.chatHistory];
+                if (msgs.length > 0) {
+                    // 增量追加：仅插入新消息，避免全量 re-render 闪动
+                    const prevScrollHeight = container.scrollHeight;
+                    this.chatHistory = [...msgs, ...this.chatHistory];
+                    const frag = document.createDocumentFragment();
+                    msgs.forEach(msg => {
+                        const div = document.createElement('div');
+                        div.className = `chat-msg ${msg.role}`;
+                        div.innerHTML = `<div class="msg-sender">${msg.role === 'user' ? '你' : this.chatChar}</div><div>${this.escapeHtml(msg.content)}</div>`;
+                        frag.appendChild(div);
+                    });
+                    const firstChild = container.firstChild;
+                    container.insertBefore(frag, firstChild);
+                    container.scrollTop = container.scrollHeight - prevScrollHeight;
+                }
+                // 没有更多历史记录时，保持现有消息不变
             } else {
                 this.chatHistory = msgs;
-            }
-            this.renderChatMessages();
-            // 加载历史后保持滚动位置
-            if (beforeId && container) {
-                requestAnimationFrame(() => {
-                    container.scrollTop = container.scrollHeight - oldScrollHeight;
-                });
+                this.renderChatMessages();
             }
         } catch (e) { /* ignore */ }
+        this.chatLoadingMore = false;
     },
 
     renderChatMessages() {
@@ -1601,7 +1939,9 @@ const App = {
             const active = data.models?.find(m => m.is_active) || {};
             document.getElementById('editModelName').value = active.id || data.active_id || '';
             document.getElementById('editApiBase').value = active.api_base || '';
-            document.getElementById('editApiKey').value = active.api_key || '';
+            const hasKey = active.has_api_key;
+            document.getElementById('editApiKey').value = hasKey ? '••••••' : '';
+            document.getElementById('editApiKey').placeholder = hasKey ? '输入新 Key 以替换' : 'sk-...';
             document.getElementById('editTemp').value = (data.config || {}).temperature || '0.75';
             document.getElementById('editMaxTokens').value = (data.config || {}).max_tokens || '2000';
             document.getElementById('editTopP').value = (data.config || {}).top_p || '0.9';
@@ -1611,10 +1951,9 @@ const App = {
 
     closeModelConfig() { document.getElementById('modelModal').style.display = 'none'; },
 
-    toggleApiKey() {
-        const el = document.getElementById('editApiKey');
-        el.type = el.type === 'password' ? 'text' : 'password';
-    },
+    // ─── 功能简介 ──────────────────────────────────
+    openIntro() { document.getElementById('introModal').style.display = 'flex'; },
+    closeIntro() { document.getElementById('introModal').style.display = 'none'; },
 
     async saveModelConfig() {
         const statusEl = document.getElementById('modelSaveStatus');
@@ -1623,7 +1962,8 @@ const App = {
 
         const modelName = document.getElementById('editModelName').value.trim();
         const apiBase = document.getElementById('editApiBase').value.trim();
-        const apiKey = document.getElementById('editApiKey').value.trim();
+        let apiKey = document.getElementById('editApiKey').value.trim();
+        if (apiKey === '••••••') apiKey = '';
         const temp = document.getElementById('editTemp').value;
         const maxTok = document.getElementById('editMaxTokens').value;
         const topP = document.getElementById('editTopP').value;

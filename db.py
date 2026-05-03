@@ -51,11 +51,20 @@ def init_db():
             name TEXT PRIMARY KEY, role TEXT, age INTEGER, occupation TEXT,
             personality_profile TEXT, catchphrases TEXT,
             schedule TEXT, relationships TEXT,
-            emoji TEXT DEFAULT '', updated_at TEXT
+            emoji TEXT DEFAULT '', avatar TEXT DEFAULT '',
+            is_system_user INTEGER DEFAULT 0, updated_at TEXT
         )
     """)
     try:
         conn.execute("ALTER TABLE characters ADD COLUMN emoji TEXT DEFAULT ''")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        conn.execute("ALTER TABLE characters ADD COLUMN avatar TEXT DEFAULT ''")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        conn.execute("ALTER TABLE characters ADD COLUMN is_system_user INTEGER DEFAULT 0")
     except sqlite3.OperationalError:
         pass
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-虚拟家庭模拟器 - Virtual Family Simulator
+模拟人生 - Virtual Family Simulator
 
 模拟一家四口（爸爸、妈妈、姐姐小月、弟弟小华）的日常生活场景。
 利用大语言模型生成自然、生动的家庭互动对话和场景。
@@ -57,7 +57,7 @@ def _get_home_description() -> str:
 
 
 class FamilySimulation:
-    """虚拟家庭模拟器 - 多模型提供商支持"""
+    """模拟人生 - 多模型提供商支持"""
 
     def __init__(self, config: SimulationConfig = None, api_key: Optional[str] = None):
         self.cfg = config or default_config
@@ -137,7 +137,7 @@ class FamilySimulation:
         profiles = self._build_character_profiles_text(active_characters)
         min_w = self.cfg.scene_min_words
         max_w = self.cfg.scene_max_words
-        return f"""# 虚拟家庭模拟器
+        return f"""# 模拟人生
 
 你是一个专业的家庭生活场景模拟器。你将根据详细的角色人设，生成一个中国四口之家的日常生活场景。
 
@@ -358,7 +358,7 @@ class FamilySimulation:
         console.clear()
         console.print()
         console.print(Panel(
-            "[bold yellow]🏠 虚拟家庭 - 一日生活模拟[/bold yellow]\n按时间顺序展示一家人一天的互动场景",
+            "[bold yellow]🏠 模拟人生 - 一日生活模拟[/bold yellow]\n按时间顺序展示一家人一天的互动场景",
             box=box.DOUBLE, border_style="yellow"
         ))
 
@@ -386,7 +386,7 @@ class FamilySimulation:
         while True:
             console.print()
             console.print(Panel(
-                "[bold yellow]🏠 虚拟家庭模拟器[/bold yellow]\n"
+                "[bold yellow]🏠 模拟人生[/bold yellow]\n"
                 f"[dim]提供商: {self.cfg.api_type} | 模型: {self.cfg.model} | 交互模式[/dim]",
                 box=box.DOUBLE, border_style="yellow"
             ))
@@ -443,7 +443,7 @@ class FamilySimulation:
 def main():
     import argparse
 
-    parser = argparse.ArgumentParser(description="🏠 虚拟家庭模拟器 - 模拟一家四口的日常生活")
+    parser = argparse.ArgumentParser(description="🏠 模拟人生 - 模拟一家四口的日常生活")
     parser.add_argument("--scene", "-s", type=str, help=f"指定场景: {', '.join(_get_scenes().keys())}")
     parser.add_argument("--day", "-d", action="store_true", help="运行一日完整模拟")
 
